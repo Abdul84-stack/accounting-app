@@ -1,4 +1,4 @@
-import streamlit as st
+'import streamlit as st
 import pandas as pd
 from datetime import datetime
 import plotly.express as px
@@ -804,9 +804,18 @@ if st.session_state.uploaded_is is not None and st.session_state.uploaded_bs is 
             current_op_exp = is_df[is_df['Item'] == 'Operating Expenses']['Amount'].sum() if 'Operating Expenses' in is_df['Item'].values else 0
             cogs_pct_revenue = (current_cogs / current_revenue * 100) if current_revenue else 40
             op_exp_pct_revenue = (current_op_exp / current_revenue * 100) if current_revenue else 30
-                
-                st.write(f"Assumed COGS as % of Revenue: {cogs_pct_revenue:.2f}%")
-                st.write(f"Assumed Operating Expenses as % of Revenue: {op_exp_pct_revenue:.2f}%")
+            
+    st.write("Project future financial performance based on assumed growth rates.")
+    st.subheader("Forecasting Assumptions")
+    forecast_years = st.slider("Number of Years to Forecast", 1, 10, 3)
+    revenue_growth_rate = st.slider("Annual Revenue Growth Rate (%)", 0, 30, 5)
+    
+    current_revenue = is_df[is_df['Item'] == 'Sales Revenue']['Amount'].sum() if 'Sales Revenue' in is_df['Item'].values else 0
+    current_cogs = is_df[is_df['Item'] == 'Cost of Goods Sold']['Amount'].sum() if 'Cost of Goods Sold' in is_df['Item'].values else 0
+    current_op_exp = is_df[is_df['Item'] == 'Operating Expenses']['Amount'].sum() if 'Operating Expenses' in is_df['Item'].values else 0
+    cogs_pct_revenue = (current_cogs / current_revenue * 100) if current_revenue else 40
+    op_exp_pct_revenue = (current_op_exp / current_revenue * 100) if current_revenue else 30
+    st.write(f"Assumed COGS as % of Revenue: {cogs_pct_revenue:.2f}%")
                 
                 if st.button("Run Forecast"):
                     forecasted_is, forecasted_bs = forecast_financials(is_df, bs_df, forecast_years, revenue_growth_rate, cogs_pct_revenue, op_exp_pct_revenue)
