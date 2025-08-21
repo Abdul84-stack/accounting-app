@@ -737,7 +737,7 @@ elif page == "Analytics":
     uploaded_is_file = st.file_uploader("Upload Income Statement (CSV)", type=["csv"], key="is_uploader")
     uploaded_bs_file = st.file_uploader("Upload Balance Sheet (CSV)", type=["csv"], key="bs_uploader")
 
- if uploaded_is_file is not None:
+if uploaded_is_file is not None:
     try:
         temp_df = pd.read_csv(uploaded_is_file)
         temp_df.columns = temp_df.columns.str.strip()
@@ -754,6 +754,7 @@ elif page == "Analytics":
     except Exception as e:
         st.error(f"Error reading Income Statement file: {e}")
         st.session_state.uploaded_is = None
+
 if uploaded_bs_file is not None:
     try:
         temp_df = pd.read_csv(uploaded_bs_file)
@@ -772,6 +773,7 @@ if uploaded_bs_file is not None:
         st.error(f"Error reading Balance Sheet file: {e}")
         st.session_state.uploaded_bs = None
 st.markdown("---")
+
 if st.session_state.uploaded_is is not None and st.session_state.uploaded_bs is not None:
     is_df = st.session_state.uploaded_is
     bs_df = st.session_state.uploaded_bs
