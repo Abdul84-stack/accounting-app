@@ -737,67 +737,72 @@ elif page == "Analytics":
     uploaded_is_file = st.file_uploader("Upload Income Statement (CSV)", type=["csv"], key="is_uploader")
     uploaded_bs_file = st.file_uploader("Upload Balance Sheet (CSV)", type=["csv"], key="bs_uploader")
 
-    if uploaded_is_file is not None:
-        try:
-            temp_df = pd.read_csv(uploaded_is_file)
-            temp_df.columns = temp_df.columns.str.strip()
-            if 'Item' in temp_df.columns and 'Amount' in temp_df.columns:
-                st.session_state.uploaded_is = temp_df
-                st.success("Income Statement uploaded successfully!")
-                st.subheader("Uploaded Income Statement Preview:")
-                st.dataframe(st.session_state.uploaded_is)
-            else:
-                st.error("Error: Income Statement CSV must contain 'Item' and 'Amount' columns.")
-                st.session_state.uploaded_is = None
-        except Exception as e:
-            st.error(f"Error reading Income Statement file: {e}")
+  if uploaded_is_file is not None:
+    try:
+        temp_df = pd.read_csv(uploaded_is_file)
+        temp_df.columns = temp_df.columns.str.strip()
+        if 'Item' in temp_df.columns and 'Amount' in temp_df.columns:
+            # Convert 'Amount' column to numeric, coercing errors
+            temp_df['Amount'] = pd.to_numeric(temp_df['Amount'], errors='coerce')
+            st.session_state.uploaded_is = temp_df
+            st.success("Income Statement uploaded successfully!")
+            st.subheader("Uploaded Income Statement Preview:")
+            st.dataframe(st.session_state.uploaded_is)
+        else:
+            st.error("Error: Income Statement CSV must contain 'Item' and 'Amount' columns.")
             st.session_state.uploaded_is = None
-    if uploaded_bs_file is not None:
-        try:
-            temp_df = pd.read_csv(uploaded_bs_file)
-            temp_df.columns = temp_df.columns.str.strip()
-            if 'Item' in temp_df.columns and 'Amount' in temp_df.columns:
-                st.session_state.uploaded_bs = temp_df
-                st.success("Balance Sheet uploaded successfully!")
-                st.subheader("Uploaded Balance Sheet Preview:")
-                st.dataframe(st.session_state.uploaded_bs)
-            else:
-                st.error("Error: Balance Sheet CSV must contain 'Item' and 'Amount' columns.")
-                st.session_state.uploaded_bs = None
-        except Exception as e:
-            st.error(f"Error reading Balance Sheet file: {e}")
+    except Exception as e:
+        st.error(f"Error reading Income Statement file: {e}")
+        st.session_state.uploaded_is = None
+if uploaded_bs_file is not None:
+    try:
+        temp_df = pd.read_csv(uploaded_bs_file)
+        temp_df.columns = temp_df.columns.str.strip()
+        if 'Item' in temp_df.columns and 'Amount' in temp_df.columns:
+            # Convert 'Amount' column to numeric, coercing errors
+            temp_df['Amount'] = pd.to_numeric(temp_df['Amount'], errors='coerce')
+            st.session_state.uploaded_bs = temp_df
+            st.success("Balance Sheet uploaded successfully!")
+            st.subheader("Uploaded Balance Sheet Preview:")
+            st.dataframe(st.session_state.uploaded_bs)
+        else:
+            st.error("Error: Balance Sheet CSV must contain 'Item' and 'Amount' columns.")
             st.session_state.uploaded_bs = None
+    except Exception as e:
+        st.error(f"Error reading Balance Sheet file: {e}")
+        st.session_state.uploaded_bs = None
 
-    st.markdown("---")
-    if st.session_state.uploaded_is is not None and st.session_state.uploaded_bs is not None:
-        is_df = st.session_state.uploaded_is
-        bs_df = st.session_state.uploaded_bs
-        col1, col2 = st.columns(2)
-        with col1:
-            with st.expander("📊 Financial Ratios", expanded=True):
-                st.write("Analyze key financial performance indicators from your uploaded statements.")
-                if st.button("Calculate Ratios"):
-                    ratios = calculate_ratios(is_df, bs_df)
-                    if ratios:
-                        for ratio_name, value in ratios.items():
-                            if isinstance(value, (int, float)):
-                                st.write(f"**{ratio_name}:** {value:,.2f}")
-                            else:
-                                st.write(f"**{ratio_name}:** {value}")
-                        st.info("Interpretation: These ratios provide insights into the company's profitability, liquidity, solvency, and efficiency.")
-                    else:
-                        st.warning("Could not calculate ratios. Please check your uploaded file format and 'Item' names.")
-            with st.expander("📈 Forecasting for Years", expanded=True):
-                st.write("Project future financial performance based on assumed growth rates.")
-                st.subheader("Forecasting Assumptions")
-                forecast_years = st.slider("Number of Years to Forecast", 1, 10, 3)
-                revenue_growth_rate = st.slider("Annual Revenue Growth Rate (%)", 0, 30, 5)
-                
-                current_revenue = is_df[is_df['Item'] == 'Sales Revenue']['Amount'].sum() if 'Sales Revenue' in is_df['Item'].values else 0
-                current_cogs = is_df[is_df['Item'] == 'Cost of Goods Sold']['Amount'].sum() if 'Cost of Goods Sold' in is_df['Item'].values else 0
-                current_op_exp = is_df[is_df['Item'] == 'Operating Expenses']['Amount'].sum() if 'Operating Expenses' in is_df['Item'].values else 0
-                cogs_pct_revenue = (current_cogs / current_revenue * 100) if current_revenue else 40
-                op_exp_pct_revenue = (current_op_exp / current_revenue * 100) if current_revenue else 30
+st.markdown("---")
+if st.session_state.uploaded_is is not None and st.session_state.uploaded_bs is not None:
+    is_df = st.session_state.uploaded_is
+    bs_df = st.session_state.uploaded_bs
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.expander("📊 Financial Ratios", expanded=True):
+            st.write("Analyze key financial performance indicators from your uploaded statements.")
+            if st.button("Calculate Ratios"):
+                ratios = calculate_ratios(is_df, bs_df)
+                if ratios:
+                    for ratio_name, value in ratios.items():
+                        if isinstance(value, (int, float)):
+                            st.write(f"**{ratio_name}:** {value:,.2f}")
+                        else:
+                            st.write(f"**{ratio_name}:** {value}")
+                    st.info("Interpretation: These ratios provide insights into the company's profitability, liquidity, solvency, and efficiency.")
+                else:
+                    st.warning("Could not calculate ratios. Please check your uploaded file format and 'Item' names.")
+    with col2:
+        with st.expander("📈 Forecasting for Years", expanded=True):
+            st.write("Project future financial performance based on assumed growth rates.")
+            st.subheader("Forecasting Assumptions")
+            forecast_years = st.slider("Number of Years to Forecast", 1, 10, 3)
+            revenue_growth_rate = st.slider("Annual Revenue Growth Rate (%)", 0, 30, 5)
+
+            current_revenue = is_df[is_df['Item'] == 'Sales Revenue']['Amount'].sum() if 'Sales Revenue' in is_df['Item'].values else 0
+            current_cogs = is_df[is_df['Item'] == 'Cost of Goods Sold']['Amount'].sum() if 'Cost of Goods Sold' in is_df['Item'].values else 0
+            current_op_exp = is_df[is_df['Item'] == 'Operating Expenses']['Amount'].sum() if 'Operating Expenses' in is_df['Item'].values else 0
+            cogs_pct_revenue = (current_cogs / current_revenue * 100) if current_revenue else 40
+            op_exp_pct_revenue = (current_op_exp / current_revenue * 100) if current_revenue else 30
                 
                 st.write(f"Assumed COGS as % of Revenue: {cogs_pct_revenue:.2f}%")
                 st.write(f"Assumed Operating Expenses as % of Revenue: {op_exp_pct_revenue:.2f}%")
